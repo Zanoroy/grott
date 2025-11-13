@@ -1,18 +1,17 @@
 [Unit]
-Description=Grott Growatt monitor
+Description=Grott Growatt Server
 After=syslog.target
 After=network.target
-After=grottserver.service
-Requires=grottserver.service
+#Wants=systemd-networkd-wait-online.service
 Wants=mosquitto.service
 
 [Service]
-SyslogIdentifier=grott
+SyslogIdentifier=grottserver
 Type=simple
 User=root
 
 WorkingDirectory=/opt/grott/
-ExecStart=-/usr/bin/python3 -u /opt/grott/grott.py -v
+ExecStart=-/usr/bin/python3 -u /opt/grott/grottserver.py
 #StandardInput=socket
 StandardOutput=journal
 
