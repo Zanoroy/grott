@@ -189,27 +189,73 @@ class GrottHttpRequestHandler(http.server.BaseHTTPRequestHandler):
                     #retrieve grottserver status                 
                     if verbose: print("\t - Grotthttpserver - Status requested")
                     
+                    # Collect server status information
+                    info_data = {}
                     
-                    print("\t - Grottserver #active threads count: ", threading.active_count())
+                    thread_count = threading.active_count()
+                    print("\t - Grottserver #active threads count: ", thread_count)
+                    info_data["active_threads_count"] = thread_count
+                    
                     activethreads = threading.enumerate()
+                    thread_list = []
                     for idx, item in enumerate(activethreads):
                         print("\t - ", item)
+                        thread_list.append(str(item))
+                    info_data["threads"] = thread_list
                     
                     try: 
                         import os, psutil
-                        #print(os.getpid())
-                        print("\t - Grottserver memory in use : ", psutil.Process(os.getpid()).memory_info().rss/1024**2)   
-                    
+                        memory_mb = psutil.Process(os.getpid()).memory_info().rss/1024**2
+                        print("\t - Grottserver memory in use : ", memory_mb)
+                        info_data["memory_mb"] = round(memory_mb, 2)
+                        info_data["pid"] = os.getpid()
                     except: 
                         print("\t - Grottserver PSUTIL not available no process information can be printed")
+                        info_data["memory_mb"] = "psutil not available"
+                        info_data["pid"] = "psutil not available"
 
                     #retrieve grottserver status               
                     print("\t - Grottserver connection queue : ")
-                    print("\t - ", list(send_queuereg.keys()))
-                    #responsetxt = json.dumps(list(send_queuereg.keys())).encode('utf-8') 
-                    responsetxt = b"<h2>Grottserver info generated, see log for details</h2>" 
+                    connection_queue = list(send_queuereg.keys())
+                    print("\t - ", connection_queue)
+                    info_data["connection_queue"] = connection_queue
+                    info_data["version"] = verrel
+                    
+                    # Return as JSON
+                    responsetxt = json.dumps(info_data, indent=2).encode('utf-8') 
                     responserc = 200 
-                    responseheader = "text/html"
+                    responseheader = "application/json"
+                    htmlsendresp(self,responserc,responseheader,responsetxt)
+                    return
+            
+            elif self.path.startswith("inverters"):
+                    #retrieve list of all inverters across all dataloggers
+                    if verbose: print("\t - Grotthttpserver - Inverters list requested")
+                    
+                    inverters_list = []
+                    # Metadata keys that are not inverter IDs
+                    metadata_keys = {"ip", "port", "protocol"}
+                    
+                    for datalogger_id, datalogger_data in loggerreg.items():
+                        for key, value in datalogger_data.items():
+                            # Skip metadata keys, only process actual inverter IDs
+                            if key not in metadata_keys and isinstance(value, dict):
+                                inverter_info = {
+                                    "inverter_id": key,
+                                    "datalogger_id": datalogger_id
+                                }
+                                # Add inverter data (inverterno, power, etc.)
+                                inverter_info.update(value)
+                                inverters_list.append(inverter_info)
+                    
+                    response_data = {
+                        "count": len(inverters_list),
+                        "inverters": inverters_list
+                    }
+                    
+                    responsetxt = json.dumps(response_data, indent=2).encode('utf-8')
+                    responserc = 200 
+                    responseheader = "application/json"
                     htmlsendresp(self,responserc,responseheader,responsetxt)
                     return
 
@@ -312,11 +358,21 @@ class GrottHttpRequestHandler(http.server.BaseHTTPRequestHandler):
 
                     # test if register is specified and set reg value. 
                     if command == "register":
+                        #test if register parameter is provided
+                        try:
+                            register_param = urlquery["register"][0]
+                        except (KeyError, IndexError):
+                            responsetxt = b'register parameter is required (e.g., &register=0)'
+                            responserc = 400 
+                            responseheader = "text/body"
+                            htmlsendresp(self,responserc,responseheader,responsetxt)
+                            return
+                        
                         #test if valid reg is applied
-                        if int(urlquery["register"][0]) >= 0 and int(urlquery["register"][0]) < 4096 : 
-                            register = urlquery["register"][0]
+                        if int(register_param) >= 0 and int(register_param) < 4096 : 
+                            register = register_param
                         else: 
-                            responsetxt = b'invalid reg value specified'
+                            responsetxt = b'invalid reg value specified (must be 0-4095)'
                             responserc = 400 
                             responseheader = "text/body"
                             htmlsendresp(self,responserc,responseheader,responsetxt)

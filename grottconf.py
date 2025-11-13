@@ -39,6 +39,8 @@ class Conf :
         #self.growattip = "47.91.67.66"
         self.growattip = "server.growatt.com"
         self.growattport = 5279
+        self.growattip2 = ""
+        self.growattport2 = 5279
 
         #MQTT default
         self.mqttip = "localhost"
@@ -233,6 +235,8 @@ class Conf :
         print("_Growatt server:")
         print("\tgrowattip:           \t",self.growattip)
         print("\tgrowattport:         \t",self.growattport)
+        print("\tgrowattip2:           \t",self.growattip2)
+        print("\tgrowattport2:         \t",self.growattport2)
         print("_PVOutput:")
         print("\tpvoutput:            \t",self.pvoutput)
         print("\tpvdisv1:             \t",self.pvdisv1)
@@ -377,6 +381,8 @@ class Conf :
         if config.has_option("Generic","valueoffset"): self.valueoffset = config.get("Generic","valueoffset")
         if config.has_option("Growatt","ip"): self.growattip = config.get("Growatt","ip") 
         if config.has_option("Growatt","port"): self.growattport = config.getint("Growatt","port")
+        if config.has_option("Growatt2","ip"): self.growattip2 = config.get("Growatt2","ip") 
+        if config.has_option("Growatt2","port"): self.growattport2 = config.getint("Growatt2","port")
         if config.has_option("MQTT","nomqtt"): self.nomqtt = config.get("MQTT","nomqtt")
         if config.has_option("MQTT","ip"): self.mqttip = config.get("MQTT","ip")
         if config.has_option("MQTT","port"): self.mqttport = config.getint("MQTT","port")
@@ -839,6 +845,7 @@ class Conf :
             "#deratingmode"      : {"value" :574, "length" : 2, "type" : "num", "divide" : 1,"incl" : "no"},
             "eacharge_today"     : {"value" :606, "length" : 4, "type" : "num", "divide" : 10}, 
             "eacharge_total"     : {"value" :614, "length" : 4, "type" : "num", "divide" : 10}, 
+            "priority"           : {"value" :630, "length" : 2, "type" : "num", "divide" : 1}, 
             "batterytype"        : {"value" :634, "length" : 2, "type" : "num", "divide" : 1}, 
             "uwsysworkmode"      : {"value" :666, "length" : 2, "type" : "num", "divide" : 1},
             "systemfaultword0"   : {"value" :670, "length" : 2, "type" : "num", "divide" : 1},

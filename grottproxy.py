@@ -120,7 +120,11 @@ class Proxy:
 
         self.server.listen(200)
         self.forward_to = (conf.growattip, conf.growattport)
-        
+        # if the second growatt server ip is configured use this as alternative
+        self.forward_to2 = None
+        if conf.growattip2 != "" :
+            self.forward_to2 = (conf.growattip2, conf.growattport2)
+
     def main(self,conf):
         self.input_list.append(self.server)
         while 1:
@@ -152,6 +156,18 @@ class Proxy:
             self.input_list.append(forward)
             self.channel[clientsock] = forward
             self.channel[forward] = clientsock
+            
+            # Setup second forward connection if configured
+            if self.forward_to2 is not None:
+                forward2 = Forward().start(self.forward_to2[0], self.forward_to2[1])
+                if forward2:
+                    if conf.verbose: print("\t - Second forward connection established to", self.forward_to2)
+                    self.input_list.append(forward2)
+                    # Store second forward with a special key to track it
+                    self.channel[(clientsock, 'forward2')] = forward2
+                    self.channel[forward2] = clientsock
+                else:
+                    if conf.verbose: print("\t - Warning: Can't establish second forward connection to", self.forward_to2)
         else:
             if conf.verbose: 
                 print("\t - Can't establish connection with remote server."),
@@ -170,6 +186,17 @@ class Proxy:
         self.input_list.remove(self.s)
         self.input_list.remove(self.channel[self.s])
         out = self.channel[self.s]
+        
+        # Close second forward connection if it exists
+        forward2_key = (out, 'forward2')
+        if forward2_key in self.channel:
+            forward2 = self.channel[forward2_key]
+            if forward2 in self.input_list:
+                self.input_list.remove(forward2)
+            forward2.close()
+            del self.channel[forward2]
+            del self.channel[forward2_key]
+        
         # close the connection with client
         self.channel[out].close()  # equivalent to do self.s.close()
         # close the connection with remote server
@@ -233,6 +260,16 @@ class Proxy:
 
         # send data to destination
         self.channel[self.s].send(data)
+        
+        # Also send to second forward connection if it exists
+        forward2_key = (self.s, 'forward2')
+        if forward2_key in self.channel:
+            try:
+                self.channel[forward2_key].send(data)
+                if conf.verbose: print("\t - Data also forwarded to second destination")
+            except Exception as e:
+                if conf.verbose: print("\t - Error forwarding to second destination:", e)
+        
         if len(data) > conf.minrecl :
             #process received data
             procdata(conf,data)    
