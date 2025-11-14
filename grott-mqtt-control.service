@@ -1,0 +1,16 @@
+[Unit]
+Description=Grott MQTT Control Handler
+Documentation=https://github.com/johanmeijer/grott
+After=network.target grottserver.service
+Requires=grottserver.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/grott
+ExecStart=/usr/bin/python3 /opt/grott/grott_mqtt_control.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

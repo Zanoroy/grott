@@ -927,6 +927,9 @@ class sendrecvserver:
             if s.fileno() == -1 : 
                 print("\t - Grottserver - socket closed")
                 return
+            
+            client_address = None
+            client_port = None
             try: 
                 #try for debug 007
                 client_address, client_port = s.getpeername()
@@ -934,7 +937,7 @@ class sendrecvserver:
                 print("\t - Grottserver - socket closed :")
                 #print("\t\t ", s )
                 #s.close
-                pass
+                return  # Exit early if we can't get peer name
 
             try: 
                 qname = client_address + "_" + str(client_port)
@@ -978,24 +981,39 @@ class sendrecvserver:
 
     def close_connection(self, s):
         try: 
-            #client_address, client_port = s.getpeername() 
             print("\t - Grottserver - Close connection : ", s)
-            #print(client_address, client_port)
+            
+            # Get peer info before removing from lists/closing
+            client_address = None
+            client_port = None
+            try:
+                client_address, client_port = s.getpeername()
+            except:
+                # Socket already closed or disconnected
+                pass
+            
+            # Remove from tracking lists
             if s in self.outputs:
                 self.outputs.remove(s)
-            self.inputs.remove(s)
-            client_address, client_port = s.getpeername() 
-            qname = client_address + "_" + str(client_port)
-            del send_queuereg[qname]
-            ### after this also clean the logger reg. To be implemented ? 
-            for key in loggerreg.keys() : 
-                #print(key, loggerreg[key])
-                #print(key, loggerreg[key]["ip"], loggerreg[key]["port"])
-                if loggerreg[key]["ip"] == client_address and loggerreg[key]["port"] == client_port :
-                    del loggerreg[key] 
-                    print("\t - Grottserver - config information deleted for datalogger and connected inverters : ", key)
-                    # to be developed delete also register information for this datalogger (and  connected inverters).  Be aware this need redef of commandresp!
-                    break     
+            if s in self.inputs:
+                self.inputs.remove(s)
+            
+            # Clean up queue and logger registry if we got peer info
+            if client_address and client_port:
+                qname = client_address + "_" + str(client_port)
+                try:
+                    del send_queuereg[qname]
+                except KeyError:
+                    pass
+                
+                ### Clean the logger reg
+                for key in list(loggerreg.keys()): 
+                    if loggerreg[key]["ip"] == client_address and loggerreg[key]["port"] == client_port :
+                        del loggerreg[key] 
+                        print("\t - Grottserver - config information deleted for datalogger and connected inverters : ", key)
+                        # to be developed delete also register information for this datalogger (and  connected inverters).  Be aware this need redef of commandresp!
+                        break
+            
             s.close()
         
         except Exception as e:

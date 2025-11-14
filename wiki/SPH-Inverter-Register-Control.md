@@ -86,15 +86,15 @@ http://<server>:5782/inverter?command=register&inverter=<INVERTER_ID>&register=<
 **Examples:**
 ```bash
 # Read priority mode (decimal)
-curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&format=dec"
+curl "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&format=dec"
 # Returns: {"value": 0}  (0=Load First, 1=Battery First, 2=Grid First)
 
 # Read battery first start time 1 (hex)
-curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1100&format=hex"
+curl "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1100&format=hex"
 # Returns: {"value": "0900"}  (09:00 AM)
 
 # Read battery first switch 1 (decimal)
-curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1102&format=dec"
+curl "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1102&format=dec"
 # Returns: {"value": 1}  (1=Enabled, 0=Disabled)
 ```
 
@@ -116,16 +116,16 @@ curl -X PUT "http://<server>:5782/inverter?command=register&inverter=<INVERTER_I
 **Examples:**
 ```bash
 # Set priority mode to Battery First (value=1)
-curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=1"
+curl -X PUT "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=1"
 
 # Enable battery first time slot 1
-curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1102&value=1"
+curl -X PUT "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1102&value=1"
 
 # Set battery first start time to 9:00 AM (0x0900 = 2304 decimal)
-curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1100&value=2304"
+curl -X PUT "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1100&value=2304"
 
 # Set battery first stop time to 17:00 (0x1100 = 4352 decimal)
-curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1101&value=4352"
+curl -X PUT "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1101&value=4352"
 ```
 
 #### Multiple Registers (PUT)
@@ -148,7 +148,7 @@ curl -X PUT "http://<server>:5782/inverter?command=multiregister&inverter=<INVER
 # 1100: 09:00 = 0x0900
 # 1101: 17:00 = 0x1100  
 # 1102: Enable = 0x0001
-curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1100&endregister=1102&value=090011000001"
+curl -X PUT "http://<server>:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1100&endregister=1102&value=090011000001"
 ```
 
 **Example - Set all 3 Battery First Time Slots:**
@@ -157,7 +157,7 @@ curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=N
 # Slot 1: 09:00-17:00 Enabled (0x0900 0x1100 0x0001)
 # Slot 2: 00:00-00:00 Disabled (0x0000 0x0000 0x0000)
 # Slot 3: 00:00-00:00 Disabled (0x0000 0x0000 0x0000)
-curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1100&endregister=1108&value=090011000001000000000000000000000000"
+curl -X PUT "http://<server>:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1100&endregister=1108&value=090011000001000000000000000000000000"
 ```
 
 ## Time Value Conversion
@@ -207,7 +207,7 @@ print(f"{hour:02d}:{minute:02d}")  # Output: 14:30
 **Bash conversion:**
 ```bash
 # Read and convert
-hex_value=$(curl -s "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1100&format=hex" | jq -r '.value')
+hex_value=$(curl -s "http://<server>:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1100&format=hex" | jq -r '.value')
 dec_value=$((16#$hex_value))
 hour=$((dec_value / 256))
 minute=$((dec_value % 256))
@@ -220,7 +220,7 @@ echo "Time: $(printf '%02d:%02d' $hour $minute)"
 
 ```bash
 INVERTER="NTCRBLR00Y"
-SERVER="http://172.17.254.10:5782"
+SERVER="http://<server>:5782"
 
 # Step 1: Set priority mode to Battery First
 curl -X PUT "$SERVER/inverter?command=register&inverter=$INVERTER&register=1044&value=1"
@@ -242,7 +242,7 @@ curl -X PUT "$SERVER/inverter?command=register&inverter=$INVERTER&register=1092&
 
 ```bash
 INVERTER="NTCRBLR00Y"
-SERVER="http://172.17.254.10:5782"
+SERVER="http://<server>:5782"
 
 echo "Priority Mode:"
 curl -s "$SERVER/inverter?command=register&inverter=$INVERTER&register=1044&format=dec"
@@ -275,7 +275,7 @@ curl -s "$SERVER/inverter?command=register&inverter=$INVERTER&register=1091&form
 # Slot 2: 0x1000 (16:00), 0x1600 (22:00), 0x0001 (enabled)
 # Slot 3: 0x0000, 0x0000, 0x0000 (disabled)
 
-curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1110&endregister=1118&value=000006000001100016000001000000000000"
+curl -X PUT "http://<server>:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1110&endregister=1118&value=000006000001100016000001000000000000"
 ```
 
 ## Important Notes
@@ -313,7 +313,7 @@ curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=N
 
 ```bash
 # List all connected inverters
-curl "http://172.17.254.10:5782/inverters"
+curl "http://<server>:5782/inverters"
 ```
 
 Returns:

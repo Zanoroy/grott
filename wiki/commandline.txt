@@ -1,0 +1,39 @@
+# Disable battery schedule 1
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1102&value=0000"
+
+# Load first
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=0"
+
+# Battery first
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=1"
+
+# Grid First (doesn't seem to work)
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=2"
+
+
+# Set Battery Schedule 9am to 1pm and enable
+curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1100&endregister=1102&value=09000c000001"
+
+# Set Export Limit to on and 100%
+curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=122&endregister=123&value=00001000"
+
+# Set Export Limit to Off
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=122&value=0"
+
+# Read invertor Export Limit
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=122"
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=123"
+
+# Set the grid export schedule 1
+curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1080&endregister=1081&value=09000e00"
+
+# check schedule  grid export schedule 1
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1080"
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1081"
+
+# Read Grid Export Schedule Enabled flag
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1082"
+
+
+systemctl stop grott && sleep 5 && systemctl start grott
+ 
