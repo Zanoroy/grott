@@ -38,26 +38,30 @@ curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&re
 systemctl stop grott && sleep 5 && systemctl start grott
  
 
- Based on the register definitions in the code, here's how to set Load First mode and prevent battery discharge:
+# Load First Mode - Discharge Stop SOC Control
+# Note: Register 608 is WRITE-ONLY (used by Growatt web portal)
+# Register 1109 is READ-ONLY (to read back the value)
+# Register 1091 only works in Battery First mode, not Load First mode
 
-Explanation:
 # 1. Set priority mode to Load First (0)
 curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=0"
 
-# 2. Set Battery Discharge Stop SOC to 100% (prevents battery discharge)
-curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1091&value=1000"
+# 2. Set Load First Discharge Stop SOC to 100% (prevents battery discharge)
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=608&value=100"
 
-Register 1044 = Priority Mode (0 = Load First)
-Register 1091 = Battery Discharge Stop SOC (setting to 100% means the battery won't discharge since it would need to be above 100% to start)
-You can verify the settings:
+# Set Load First Discharge Stop SOC to 50%
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=608&value=50"
+
+# Set Load First Discharge Stop SOC to 25%
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=608&value=25"
+
+# Read Load First Discharge Stop SOC (register 1109, not 608)
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1109"
+
 # Check priority mode
-curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&format=dec"
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044"
 
-# Check discharge stop SOC
-curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1091&format=dec"
-
-This configuration will:
-
-Prioritize powering the load from PV/Grid first
-Prevent battery discharge by setting the stop threshold to 100%
-Effectively keep your battery charged and unused for backup purposes
+Register 1044 = Priority Mode (0 = Load First, 1 = Battery First, 2 = Grid First)
+Register 608 = Load First Discharge Stop SOC WRITE (0-100%, discovered via reverse engineering)
+Register 1109 = Load First Discharge Stop SOC READ (0-100%)
+Register 1091 = Battery First Stop SOC (only active in Battery First mode)

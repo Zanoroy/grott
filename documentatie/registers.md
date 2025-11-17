@@ -73,6 +73,7 @@ Search for: Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English.pdf for protoc
 | Reg  | Name              | Description      | Write | Value   |Unit |Initial| Note                                                               |
 | ---- | ----------------- | ---------------- |-------|---------|-----|-------| -------------------------------------------------------------------|
 | 1000 | Float charge current limit | When charge current battery need is lower than this value, enter nto float charge |W||0.1A|600| CC current|
+| 608 | Load First Discharge Stop SOC | Discharge Stop SOC when Load First (undocumented, WRITE-ONLY) | W | 0-100 | 1% || Discovered via reverse engineering. Used by Growatt web portal. Read value from register 1109. |
 | 1044 | Priority | ForceChrEn / ForceDischrEn Load first / Bat first / Grid first | | 0:Load (default)  <br/> 1:Battery  <br/>  2:Grid|| 0 | Force Charge En/dis Force Discharge En/dis|
 | 1060 | BuckUpsFunEn | Ups function enable or disable | | Enable: 1 Disable: 0 ||||
 | 1061 | BuckUPSVoltSet | UPS output voltage | | 0:230 1:208 2:240 || 230v ||
@@ -89,7 +90,7 @@ Search for: Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English.pdf for protoc
 | 1087 | Grid First Stop Time 3 | High eight bit: hour Low eight bit: minute | W | 0-23 0-59 ||| 
 | 1088 | Grid First Stop Switch 3 | Enable: 1 Disable: 0 | W | 0 or 1 ||| Grid First enable 3 |
 | 1090 | Bat FirstPower Rate | Charge Power Rate when Bat First | W | 0-100 | 1% || Charge Power Rate when Bat First |
-| 1091 | wBat First stop SOC | Stop Charge soc when Bat First | W | 0-100 | 1% || Stop Charge soc when Bat First | 
+| 1091 | wBat First stop SOC | Stop Charge soc when Bat First | W | 0-100 | 1% || Stop Charge soc when Bat First (only active in Battery First mode, not Load First) | 
 | 1092 | AC charge Switch | When Bat First Enable: 1 Disable: 0 | W | 0 or 1 ||| AC charge enable |
 | 1100 | Bat First Start Time 1 | High eight bit: hour Low eight bit: minute | W | 0-23 0-59 ||| 
 | 1101 | Bat First Stop Time 1 | High eight bit: hour Low eight bit: minute | W | 0-23 0-59 ||| 
@@ -101,7 +102,7 @@ Search for: Growatt-Inverter-Modbus-RTU-Protocol-II-V1-24-English.pdf for protoc
 | 1107 | Bat First Stop Time 3 | High eight bit: hour Low eight bit: minute | W | 0-23 0-59 ||| 
 | 1108 | Bat First on/off Switch 3 | Enable: 1 Disable: 0 | W | 0 or 1 ||| Battery First Enable 3 |
 | ---- | ----------------- | ---------------- |-------|---------|-----|-------| -------------------------------------------------------------------|
-| 1109 |  | Load First Discharge Stopped Soc | R | 0-100 ||| This is not offical, I worked this out so may not be final <br/> See discussion here: https://github.com/johanmeijer/grott/issues/405|
+| 1109 | Load First Discharge Stop SOC | Load First Discharge Stop SOC (READ-ONLY) | R | 0-100 | 1% || Read-only register for Load First Discharge Stop SOC. Write to register 608 instead. See discussion: https://github.com/johanmeijer/grott/issues/405|
 | ---- | ----------------- | ---------------- |-------|---------|-----|-------| -------------------------------------------------------------------|
 | 1110 | Load First Start Time 1 | High eight bit: hour Low eight bit: minute | W | 0-23 0-59 ||| 
 | 1111 | Load First Stop Time 1 | High eight bit: hour Low eight bit: minute | W | 0-23 0-59 ||| 
