@@ -37,3 +37,27 @@ curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&re
 
 systemctl stop grott && sleep 5 && systemctl start grott
  
+
+ Based on the register definitions in the code, here's how to set Load First mode and prevent battery discharge:
+
+Explanation:
+# 1. Set priority mode to Load First (0)
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=0"
+
+# 2. Set Battery Discharge Stop SOC to 100% (prevents battery discharge)
+curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1091&value=1000"
+
+Register 1044 = Priority Mode (0 = Load First)
+Register 1091 = Battery Discharge Stop SOC (setting to 100% means the battery won't discharge since it would need to be above 100% to start)
+You can verify the settings:
+# Check priority mode
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&format=dec"
+
+# Check discharge stop SOC
+curl "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1091&format=dec"
+
+This configuration will:
+
+Prioritize powering the load from PV/Grid first
+Prevent battery discharge by setting the stop threshold to 100%
+Effectively keep your battery charged and unused for backup purposes

@@ -222,6 +222,36 @@ class Proxy:
 
         # FILTER!!!!!!!! Detect if configure data is sent!
         header = "".join("{:02x}".format(n) for n in data[0:8])
+        
+        # Log external commands (06 = write inverter register, 10 = write multiple registers)
+        if header[14:16] in ("06", "10"):
+            if header[6:8] == "05" or header[6:8] == "06": 
+                cmddata = decrypt(data)
+            else:
+                cmddata = "".join("{:02x}".format(n) for n in data)
+            
+            # Determine offset based on protocol
+            offset = 40 if header[6:8] == "06" else 0
+            
+            if header[14:16] == "06":
+                # Single register write (command 06)
+                register = int(cmddata[36+offset:40+offset], 16)
+                value = int(cmddata[42+offset:46+offset], 16)
+                print(f"\t - Grott: External Write Command - Register: {register} (0x{register:04x}), Value: {value} (0x{value:04x})")
+            elif header[14:16] == "10":
+                # Multi-register write (command 10)
+                startregister = int(cmddata[36+offset:40+offset], 16)
+                endregister = int(cmddata[40+offset:44+offset], 16)
+                values_hex = cmddata[44+offset:]
+                num_regs = endregister - startregister + 1
+                print(f"\t - Grott: External Multi-Write Command - Registers: {startregister}-{endregister}")
+                # Parse and log individual register values
+                for i in range(num_regs):
+                    if (i * 4 + 4) <= len(values_hex):
+                        reg_value = int(values_hex[i*4:(i*4)+4], 16)
+                        reg_num = startregister + i
+                        print(f"\t\t   Register {reg_num} (0x{reg_num:04x}) = {reg_value} (0x{reg_value:04x})")
+        
         if conf.blockcmd : 
             #standard everything is blocked!
             print("\t - " + "Growatt command block checking started") 
