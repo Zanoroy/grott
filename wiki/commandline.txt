@@ -10,6 +10,8 @@ curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBL
 # Grid First (doesn't seem to work)
 curl -X PUT "http://172.17.254.10:5782/inverter?command=register&inverter=NTCRBLR00Y&register=1044&value=2"
 
+# Set Grid First Schedule 6am to 7:30am and disabled
+curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1080&endregister=1082&value=062d071e0000"
 
 # Set Battery Schedule 9am to 1pm and enable
 curl -X PUT "http://172.17.254.10:5782/inverter?command=multiregister&inverter=NTCRBLR00Y&startregister=1100&endregister=1102&value=09000c000001"

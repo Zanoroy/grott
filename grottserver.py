@@ -799,7 +799,7 @@ class GrottHttpRequestHandler(http.server.BaseHTTPRequestHandler):
 
                 #wait for response
                 #Set #retry waiting loop for datalogger or inverter 
-                if sendcommand == "06" :
+                if sendcommand in ("06", "10") :
                    wait = round(MaxInverterResponseWait/ResponseWaitInterval)
                    #if verbose: print("\t - Grotthttpserver - wait Cycles:", wait )
                 else :
